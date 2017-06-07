@@ -1,4 +1,4 @@
-
+# Copyright 2016 Fred Hutchinson Cancer Research Center
 # from distutils.core import setup
 
 from setuptools import setup, find_packages
@@ -8,14 +8,13 @@ from setuptools import setup, find_packages
 
 
 
-packages = find_packages();
+packages = find_packages(exclude=['tests']);
 
-print packages
 
 setup(name='yagdspy',
       author='Keith Curtis',
       description='Graph dependancy system for processing tasks',
-      license='To be determined, for Hutch internal use at moment',
+      license='GNU LGPLv3',
       version='1.0',
       packages=packages
       )

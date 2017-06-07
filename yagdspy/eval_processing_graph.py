@@ -1,3 +1,4 @@
+# Copyright 2016 Fred Hutchinson Cancer Research Center
 
 import os
 
@@ -10,9 +11,9 @@ class Digraph:
         self.node_outs = { }
         self.node_ins = { }
     def has_node(self, node):
-        return self.node_outs.has_key(node);
+        return node in self.node_outs;
     def add_node(self, node):
-        if (not self.node_outs.has_key(node)):
+        if (node not in self.node_outs):
               self.node_outs[node] = set();
               self.node_ins[node] = set();
     def add_nodes(self, nodes):

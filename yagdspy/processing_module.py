@@ -1,3 +1,4 @@
+# Copyright 2016, 2017 Fred Hutchinson Cancer Research Center
 ################################################################################
 ### Framework of processing module method
 
@@ -6,7 +7,7 @@ import os
 import inspect
 
 
-from eval_processing_graph import *
+from .eval_processing_graph import *
 
 class ProcessingModule:
     """Define basic idea of processing module class to be something that
@@ -84,22 +85,22 @@ def boundaryCheck(f):
             pre_exist, pre_timestamps = self.check_prereqs(required=False)
             post_exist, post_timestamps = self.check_postreqs(required=False)
             if not pre_exist:
-                print '[Dry Run] prereqs are not present for ' + self.name
+                print('[Dry Run] prereqs are not present for ' + self.name)
                 return
             if post_exist and min(post_timestamps) > max(pre_timestamps):
-                print "[Dry Run] Provide files up-to-date, will skip " + self.name
+                print("[Dry Run] Provide files up-to-date, will skip " + self.name)
                 return;
-            print '[Dry Run] Would need to run ' + self.name
+            print('[Dry Run] Would need to run ' + self.name)
             return
             
         pre_exist, pre_timestamps = self.check_prereqs()
         post_exist, post_timestamps = self.check_postreqs(required=False)
         if post_exist and min(post_timestamps) > max(pre_timestamps):
             # can skip
-            print "Provide files up-to-date, will skip " + self.name
+            print("Provide files up-to-date, will skip " + self.name)
             return;
 
-        print "Running " + self.name
+        print("Running " + self.name)
         f(self)
         self.check_postreqs()
     return skipping_version
@@ -203,7 +204,7 @@ def check_requirements(requirements):
             msg += "ERROR not found " + r + "\n"
             requirements_met = False;
         else:
-            print 'Found ' + r
+            print('Found ' + r)
     if not requirements_met:
         raise Exception(msg)
 
