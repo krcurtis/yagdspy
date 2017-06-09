@@ -160,12 +160,14 @@ def create_processing_module(func, name=None, files=None):
                     self.requires.add(fullname)
                     self.files[key] = fullname
                     check_arg(key)
+                    setattr(self, key, self.files[key])
 
                 elif varname.startswith("in| "):
                     key = varname.split('in| ')[1]
                     self.requires.add(pathname)
                     self.files[key] = pathname
                     check_arg(key)
+                    setattr(self, key, self.files[key])
 
                 elif varname.startswith('out '):
                     key = varname.split('out ')[1]
@@ -173,6 +175,7 @@ def create_processing_module(func, name=None, files=None):
                     self.provides.add(fullname)
                     self.files[key] = fullname
                     check_arg(key)
+                    setattr(self, key, self.files[key])
 
                 elif 'base' == varname or 'config' == varname:
                     continue;

@@ -54,10 +54,21 @@ class TestSequencing(unittest.TestCase):
         self.assertTrue(lines == sorted(lines))  # simple test to check consistency of ordering
 
         
+    def test_attribute(self):
+        
+        def my_custom_processing_step1(output_file=None, input_file=None, base=None, config=None):
+            pass
 
-
-
-            
+        output_file = "file1.csv"
+        input_file = "foo.csv"
+        MyCustomProcessing1 = gds.create_processing_module(my_custom_processing_step1, name='MyCustomProcessing1', files=
+                                          { 'out output_file':output_file,
+                                            'in input_file': input_file })
+        base=None
+        config = { 'OUTPUT_DIR': ''}
+        m = MyCustomProcessing1(base, config)
+        self.assertTrue(m.output_file == output_file)
+        self.assertTrue(m.input_file == input_file)
 
 
 

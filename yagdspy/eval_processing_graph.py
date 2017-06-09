@@ -12,6 +12,9 @@ class Digraph:
         self.node_ins = { }
     def has_node(self, node):
         return node in self.node_outs;
+    def has_edge(self, edge):
+        n1, n2 = edge
+        return n1 in self.node_outs and n2 in self.node_outs[n1]
     def add_node(self, node):
         if (node not in self.node_outs):
               self.node_outs[node] = set();
