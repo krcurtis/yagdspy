@@ -16,5 +16,14 @@ setup(name='yagdspy',
       description='Graph dependancy system for processing tasks',
       license='GNU LGPLv3',
       version='1.0',
-      packages=packages
+      url='https://github.com/krcurtis/yagdspy',
+      classifiers=[
+          'Development Status :: 4 - Beta',
+          'License :: GNU LGPLv3',
+          'Programming Language :: Python :: 3.5'
+          ],
+      keywords='graph dependancy',
+      packages=packages,
+      install_requires=['pydot'],
+      python_requires='>=3.5.3',
       )
