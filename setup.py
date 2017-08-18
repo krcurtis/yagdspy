@@ -14,12 +14,12 @@ packages = find_packages(exclude=['tests']);
 setup(name='yagdspy',
       author='Keith Curtis',
       description='Graph dependancy system for processing tasks',
-      license='GNU LGPLv3',
+      license='License :: OSI Approved :: GNU Lesser General Public License v3 (LGPLv3)',
       version='1.0',
       url='https://github.com/krcurtis/yagdspy',
       classifiers=[
           'Development Status :: 4 - Beta',
-          'License :: GNU LGPLv3',
+          'License :: OSI Approved :: GNU Lesser General Public License v3 (LGPLv3)',
           'Programming Language :: Python :: 3.5'
           ],
       keywords='graph dependancy',
