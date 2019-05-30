@@ -1,7 +1,7 @@
-"""YAGDSPY - Yet Another Graph Dependancy System in PYthon. Provide
-core functions for building processing pipelines, whether for building
-like make/maven/scons, or multi-step analysis using files to save
-intermediate or final results.
+"""YAGDSPY - Yet Another Graph Dependancy System in Python. Provide
+core functions for building processing pipelines, whether for
+automating building of files, or multi-step analysis using files to
+save intermediate or final results.
 """
 # Copyright 2016, 2017 Fred Hutchinson Cancer Research Center
 
@@ -9,3 +9,4 @@ intermediate or final results.
 
 from .processing_module import *
 
+from .planning import *

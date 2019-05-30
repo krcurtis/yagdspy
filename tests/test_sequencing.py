@@ -65,7 +65,7 @@ class TestSequencing(unittest.TestCase):
                                           { 'out output_file':output_file,
                                             'in input_file': input_file })
         base=None
-        config = { 'OUTPUT_DIR': ''}
+        config = { 'OUTPUT_DIR': '.'}
         m = MyCustomProcessing1(base, config)
         self.assertTrue(m.output_file == output_file)
         self.assertTrue(m.input_file == input_file)

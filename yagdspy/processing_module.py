@@ -1,13 +1,57 @@
-# Copyright 2016, 2017 Fred Hutchinson Cancer Research Center
+# Copyright 2016, 2017, 2019 Fred Hutchinson Cancer Research Center
 ################################################################################
 ### Framework of processing module method
 
 
 import os
+import re
 import inspect
+import datetime
+
+import boto3
+
+processing_module_info = []
 
 
 from .eval_processing_graph import *
+
+
+def is_s3_url(filename):
+    if len(filename) > 5:
+        if "s3://" == filename[:5]:
+            return True
+    return False
+
+def s3_check_modified_time(url):
+    """Return timestamp if object exists"""
+    
+    s3client = boto3.client('s3') 
+    m = re.search("\As3://([^/]+)/(.+)\Z", url)
+    if None == m:
+        raise Exception("ERROR url does not seem to be a valid AWS S3 url: " + url)
+    bucket, key = m.groups()
+    try:
+        metadata = s3client.head_object(Bucket=bucket, Key=key)
+    except:
+        return False, None
+
+    modified_text = metadata['ResponseMetadata']['HTTPHeaders']['last-modified']
+    d = datetime.datetime.strptime(modified_text, "%a, %d %b %Y %H:%M:%S %Z")
+    return True, d.timestamp() # get time since epoch like os.path.getmtime()
+
+
+def is_readable(filename):
+    return os.access(filename,  os.R_OK)
+
+
+def check_modified_time(filename):
+    if is_s3_url(filename):
+        return s3_check_modified_time(filename)
+    elif is_readable(filename):
+        return True, os.path.getmtime(filename)
+    else:
+        return False, None
+
 
 class ProcessingModule:
     """Define basic idea of processing module class to be something that
@@ -26,20 +70,18 @@ class ProcessingModule:
     def __str__(self):
         return self.name;
 
-    def is_readable(self, filename):
-        return os.access(filename,  os.R_OK)
 
     def check_exist(self, fileset, required):
         timestamps = []
         exists = True
         for filename in fileset:
-            if self.is_readable(filename):
-                timestamps.append( os.path.getmtime(filename) )
-            elif required:
-                exists = False;
-                raise Exception("ERROR could not read" + filename);
+            it_exists, timestamp = check_modified_time(filename)
+            if it_exists:
+                timestamps.append(timestamp)
             else:
                 exists = False
+                if required:
+                    raise Exception("ERROR could not read" + filename);
 
         return exists, timestamps
 
@@ -109,6 +151,30 @@ def boundaryCheck(f):
 
 
 
+def parse_file_templates(file_dictionary):
+    """Parse input/output file path templates"""
+    inputs = {}
+    outputs = {}
+
+    for varname, pathname in file_dictionary.items():
+        if varname.startswith("in "):
+            key = varname.split('in ')[1]
+            inputs[key] = pathname
+
+        elif varname.startswith("in| "):
+            key = varname.split('in| ')[1]
+            inputs[key] = pathname
+
+        elif varname.startswith('out '):
+            key = varname.split('out ')[1]
+            outputs[key] = pathname
+
+        elif 'base' == varname or 'config' == varname:
+            continue;
+        else:
+            raise Exception("Unexpected files arg:" + varname)
+    return inputs, outputs
+
 
 
 
@@ -133,6 +199,10 @@ def create_processing_module(func, name=None, files=None):
 
     """
 
+
+    inputs, outputs = parse_file_templates(files)
+
+
     class Wrap(ProcessingModule):
         def __init__(self, base, config):
             ProcessingModule.__init__(self, base, config)
@@ -152,35 +222,20 @@ def create_processing_module(func, name=None, files=None):
             if 'config' not in func_args:
                 raise Exception("ERROR implementation function " + func.__name__ + " does not have config keyword parameter")
 
-            for varname, pathname in files.items():
-                pathname = pathname.format(**config)
-                if varname.startswith("in "):
-                    key = varname.split('in ')[1]
-                    fullname = os.path.join(config['OUTPUT_DIR'], pathname)
-                    self.requires.add(fullname)
-                    self.files[key] = fullname
-                    check_arg(key)
-                    setattr(self, key, self.files[key])
 
-                elif varname.startswith("in| "):
-                    key = varname.split('in| ')[1]
-                    self.requires.add(pathname)
-                    self.files[key] = pathname
-                    check_arg(key)
-                    setattr(self, key, self.files[key])
+            for key, pathname in inputs.items():
+                fullname = pathname.format(**config)
+                self.requires.add(fullname)
+                self.files[key] = fullname
+                check_arg(key)
+                setattr(self, key, self.files[key])
 
-                elif varname.startswith('out '):
-                    key = varname.split('out ')[1]
-                    fullname = os.path.join(config['OUTPUT_DIR'], pathname)
-                    self.provides.add(fullname)
-                    self.files[key] = fullname
-                    check_arg(key)
-                    setattr(self, key, self.files[key])
-
-                elif 'base' == varname or 'config' == varname:
-                    continue;
-                else:
-                    raise Exception("Unexpected files arg:" + varname)
+            for key, pathname in outputs.items():
+                fullname = pathname.format(**config)
+                self.provides.add(fullname)
+                self.files[key] = fullname
+                check_arg(key)
+                setattr(self, key, self.files[key])
                   
 
         @boundaryCheck
@@ -190,6 +245,8 @@ def create_processing_module(func, name=None, files=None):
             args['base'] = self.base
             args['config'] = self.config
             self.func(**args)
+
+    processing_module_info.append((name, Wrap, inputs, outputs))
     return Wrap
 
 
@@ -203,7 +260,9 @@ def check_requirements(requirements):
     for r in requirements:
         if isinstance(r, ProcessingModule):
             raise Exception("ERROR problem in graph where a processing module is a source requirement")
-        if not os.access(r,  os.R_OK):
+
+        exists, timestamp = check_modified_time(r)
+        if not exists:
             msg += "ERROR not found " + r + "\n"
             requirements_met = False;
         else:
