@@ -24,6 +24,6 @@ setup(name='yagdspy',
           ],
       keywords='graph dependancy',
       packages=packages,
-      install_requires=['pydot'],
+      install_requires=['pydot', 'boto3'],
       python_requires='>=3.5.3',
       )
